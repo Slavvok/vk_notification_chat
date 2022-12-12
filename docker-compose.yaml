@@ -1,0 +1,51 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      args:
+        - API_TOKEN=${API_TOKEN}
+        - RECIPIENTS=${RECIPIENTS}
+    environment:
+      - API_TOKEN=${API_TOKEN}
+      - RECIPIENTS=${RECIPIENTS}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8080:8080"
+    networks:
+      - backnet
+      - frontnet
+
+  chatbot:
+    build:
+      context: ./chatbot
+      args:
+        - API_TOKEN=${API_TOKEN}
+        - RECIPIENTS=${RECIPIENTS}
+        - HASHTAGS=${HASHTAGS}
+    environment:
+      - API_TOKEN=${API_TOKEN}
+      - RECIPIENTS=${RECIPIENTS}
+      - HASHTAGS=${HASHTAGS}
+    volumes:
+      - ./chatbot:/chatbot
+    ports:
+      - "8081:8081"
+    networks:
+      - backnet
+      - frontnet
+
+  proxy:
+    build: proxy
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+    networks:
+      - frontnet
+
+networks:
+  backnet:
+  frontnet:
