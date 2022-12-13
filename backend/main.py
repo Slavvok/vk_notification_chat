@@ -50,11 +50,11 @@ async def index(request: web.Request) -> web.Response:
 
     if order.payment_status != 'success':
         logger.info(f"Информация по заказу: {order.json()}")
-        message = f"Не прошла оплата для заказа {order.order_id}.\n" \
+        message = f"Не прошла оплата для заказа {order.order_id}.\n\n" \
                   f"Контакты клиента:\n" \
                   f"\temail: {order.customer_email}\n" \
                   f"\tтелефон: {order.customer_phone}\n" \
-                  f"\tдополнительные контакты: {order.customer_extra}.\n" \
+                  f"\tдополнительные контакты: {order.customer_extra}.\n\n" \
                   f"Статус заказа:\n" \
                   f"\t{order.payment_status_description}"
         await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
