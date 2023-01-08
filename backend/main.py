@@ -37,13 +37,13 @@ class PaymentInfo(BaseModel):
     commission_sum: float
     attempt: int
     sys: str
-    vk_user_id: str
+    vk_user_id: int
     products: List[ProductsModel]
     payment_status: str
     payment_status_description: str
 
 
-async def index(request: web.Request) -> web.Response:
+async def update_order_status(request: web.Request) -> web.Response:
     request = await request.text()
     request = json.loads(request)
     order = PaymentInfo(**request)
@@ -57,7 +57,7 @@ async def index(request: web.Request) -> web.Response:
                   f"\tдополнительные контакты: {order.customer_extra}.\n\n" \
                   f"Статус заказа:\n" \
                   f"\t{order.payment_status_description}"
-        await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
+        await api.messages.send(message=message, user_id=order.vk_user_id, random_id=0)
     return web.Response()
 
 
