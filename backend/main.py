@@ -59,3 +59,7 @@ async def index(request: web.Request) -> web.Response:
                   f"\t{order.payment_status_description}"
         await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
     return web.Response()
+
+
+async def main_page(request: web.Request) -> web.Response:
+    return web.Response(text="Hi")
