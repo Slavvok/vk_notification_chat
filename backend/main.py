@@ -48,7 +48,9 @@ async def update_order_status(request: web.Request) -> web.Response:
     request = json.loads(request)
     order = PaymentInfo(**request)
 
-    if order.payment_status != 'success':
+    if order.payment_status == 'success':
+        logger.info(f"Успех! Номер заказа: {order.order_id}\nСумма: {order.sum}\nТип: {order.payment_type}")
+    else:
         logger.info(f"Информация по заказу: {order.json()}")
         message = f"Не прошла оплата для заказа {order.order_id}.\n\n" \
                   f"Контакты клиента:\n" \
