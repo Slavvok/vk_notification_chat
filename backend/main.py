@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from aiohttp import web
 from pydantic import BaseModel
@@ -31,13 +31,13 @@ class PaymentInfo(BaseModel):
     sum: float
     customer_phone: str
     customer_email: str
-    customer_extra: str
+    customer_extra: Optional[str]
     payment_type: str
     commission: float
     commission_sum: float
     attempt: int
     sys: str
-    vk_user_id: int
+    vk_user_id: Optional[int]
     products: List[ProductsModel]
     payment_status: str
     payment_status_description: str
@@ -59,7 +59,11 @@ async def update_order_status(request: web.Request) -> web.Response:
                   f"\tдополнительные контакты: {order.customer_extra}.\n\n" \
                   f"Статус заказа:\n" \
                   f"\t{order.payment_status_description}"
-        await api.messages.send(message=message, user_id=order.vk_user_id, random_id=0)
+        if order.vk_user_id:
+            await api.messages.send(message=message, user_id=order.vk_user_id, random_id=0)
+        else:
+            logger.info("No vk_id")
+            await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
     return web.Response()
 
 
