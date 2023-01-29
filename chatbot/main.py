@@ -22,8 +22,8 @@ bot = Bot(api=api, polling=polling)
 
 @bot.on.raw_event(event=[GroupEventType.WALL_REPLY_NEW, GroupEventType.WALL_POST_NEW], dataclass=Event)
 async def wall_updates(event: Event):
-    post = f"wall{event.object.owner_id}_{event.object.id}"
     if hashtags_pattern.findall(event.object.text.lower()):
+        post = f"wall{event.object.owner_id}_{event.object.id}"
         await api.messages.send(attachment=post, user_id=RECIPIENTS, random_id=0)
 
 
