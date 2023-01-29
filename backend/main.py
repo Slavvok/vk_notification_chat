@@ -7,6 +7,7 @@ from typing import List, Optional
 from aiohttp import web
 from pydantic import BaseModel
 from vkbottle import API
+from urllib.parse import parse_qs
 
 logger = logging.getLogger(__name__)
 
@@ -36,16 +37,28 @@ class PaymentInfo(BaseModel):
     commission: float
     commission_sum: float
     attempt: int
-    sys: str
+    sys: Optional[str]
     vk_user_id: Optional[int]
-    products: List[ProductsModel]
+    products: Optional[List[ProductsModel]]
     payment_status: str
     payment_status_description: str
 
 
+async def process_request(request):
+    try:
+        request = json.loads(request)
+    except Exception:
+        request = parse_qs(request)
+        request = {k: v[0] for k, v in request.items()}
+
+    return request
+
+
 async def update_order_status(request: web.Request) -> web.Response:
+    logging.debug(request)
     request = await request.text()
-    request = json.loads(request)
+    request = await process_request(request)
+    logging.debug(request)
     order = PaymentInfo(**request)
 
     if order.payment_status == 'success':
@@ -62,7 +75,7 @@ async def update_order_status(request: web.Request) -> web.Response:
         if order.vk_user_id:
             await api.messages.send(message=message, user_id=order.vk_user_id, random_id=0)
         else:
-            logger.info("No vk_id")
+            logger.info("No vk id")
             await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
     return web.Response()
 
