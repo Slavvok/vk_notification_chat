@@ -19,6 +19,33 @@ services:
       - backnet
       - frontnet
 
+  email_parser:
+    build:
+      context: ./email_parser
+      args:
+        - API_TOKEN=${API_TOKEN}
+        - RECIPIENTS=${RECIPIENTS}
+        - EMAIL_HOST=${EMAIL_HOST}
+        - EMAIL_PORT=${EMAIL_PORT}
+        - EMAIL_DOMAIN=${EMAIL_DOMAIN}
+        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+        - GREETING_TEXT=${GREETING_TEXT}
+    environment:
+        - API_TOKEN=${API_TOKEN}
+        - RECIPIENTS=${RECIPIENTS}
+        - EMAIL_HOST=${EMAIL_HOST}
+        - EMAIL_PORT=${EMAIL_PORT}
+        - EMAIL_DOMAIN=${EMAIL_DOMAIN}
+        - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+        - GREETING_TEXT=${GREETING_TEXT}
+    volumes:
+      - ./email_parser:/app
+    ports:
+      - "8081:8081"
+    networks:
+      - backnet
+      - frontnet
+
   chatbot:
     build:
       context: ./chatbot
