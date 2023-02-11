@@ -1,0 +1,3 @@
+# START CRON JOB
+*/5 * * * * python3 /app/retrieve_email.py > /var/log/script.log
+# END CRON JOB

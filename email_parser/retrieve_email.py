@@ -4,9 +4,11 @@ import logging
 import os
 import re
 
-from html_parser import EmailHTMLParser
 from vkbottle import API
-from email_parser.models import PaymentInfo
+from imap_tools import MailBoxUnencrypted
+from html_parser import EmailHTMLParser
+from models import PaymentInfo
+
 
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
@@ -124,12 +126,10 @@ def fetch_emails():
 
 
 def imaptools_fetch() -> list:
-    from imap_tools import MailBoxUnencrypted
-
     messages = []
     # get email bodies from INBOX
     with MailBoxUnencrypted(EMAIL_HOST, EMAIL_PORT).login(EMAIL_DOMAIN, EMAIL_PASSWORD, 'INBOX') as mailbox:
-        for msg in mailbox.fetch('FLAGGED'):
+        for msg in mailbox.fetch('UNSEEN'):
             body = msg.text
             if not body:
                 body = msg.html
