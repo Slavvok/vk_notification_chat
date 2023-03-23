@@ -53,7 +53,7 @@ async def parse_plain_text(email_text):
         vk_id = re.findall(r'vk.com/\S+', email_text)
 
         if not vk_id:
-            start_contacts = email_text.find('номер телефона:')
+            start_contacts = email_text.find('id заказа:')
             end_contacts = email_text.find('доп')
             contacts = email_text[start_contacts:end_contacts]
             result = f"{result}\n{contacts}"
@@ -77,7 +77,7 @@ async def parse_dict(fetched_dict):
         else:
             logger.info(f"Ошибка оплаты! Номер заказа: {order.order_id}\n{order_info}")
             subscription_id = order.subscription.id if order.subscription and order.subscription.id is not None else ''
-            message = f"Не прошла оплата по подписке\n\n{order_info}\n"
+            message = f"Не прошла оплата по подписке\n\n{subscription_id}\n"
 
             if not vk_id:
                 message += f"Контакты клиента:\n" \
@@ -113,7 +113,7 @@ async def send_vk_message(message, vk_id=None):
         await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
     else:
         logger.info(f'Sending message to user {vk_id}')
-        await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
+        await api.messages.send(message=message, user_id=vk_id, random_id=0)
 
 
 def fetch_emails():
