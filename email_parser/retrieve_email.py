@@ -7,8 +7,7 @@ import re
 from vkbottle import API
 from imap_tools import MailBoxUnencrypted
 from html_parser import EmailHTMLParser
-from models import PaymentInfo
-
+from models import PaymentInfo, MessageModel
 
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
 EMAIL_PORT = os.environ.get("EMAIL_PORT")
@@ -52,16 +51,18 @@ async def parse_plain_text(email_text):
 
         vk_id = re.findall(r'vk.com/\S+', email_text)
 
-        if not vk_id:
-            start_contacts = email_text.find('id заказа:')
-            end_contacts = email_text.find('доп')
-            contacts = email_text[start_contacts:end_contacts]
-            result = f"{result}\n{contacts}"
-        else:
+        if vk_id:
             vk_id = await get_vk_id(vk_id[0])
-            result = f"{GREETING_TEXT}{result}"
 
-        await send_vk_message(result, vk_id)
+        start_contacts = email_text.find('id заказа:')
+        end_contacts = email_text.find('доп')
+        contacts = email_text[start_contacts:end_contacts]
+
+        message_model = MessageModel(message=result,
+                                     contacts=contacts,
+                                     greeting_text=GREETING_TEXT)
+
+        await send_vk_message(message_model, vk_id)
 
 
 async def parse_dict(fetched_dict):
@@ -79,19 +80,22 @@ async def parse_dict(fetched_dict):
             subscription_id = order.subscription.id if order.subscription and order.subscription.id is not None else ''
             message = f"Не прошла оплата по подписке\n\n{subscription_id}\n"
 
-            if not vk_id:
-                message += f"Контакты клиента:\n" \
-                           f"\temail: {order.customer_email}\n" \
-                           f"\tтелефон: {order.customer_phone}\n\n"
-            else:
-                vk_id = await get_vk_id(vk_id)
-                message = f"{GREETING_TEXT}{message}"
-
             if order.payment_status_description:
                 message += f"Статус заказа:\n" \
-                           f"\t{order.payment_status_description}"
+                           f"\t{order.payment_status_description}\n"
 
-            await send_vk_message(message, vk_id)
+            if vk_id:
+                vk_id = await get_vk_id(vk_id)
+
+            contacts = f"Контакты клиента:\n" \
+                       f"\temail: {order.customer_email}\n" \
+                       f"\tтелефон: {order.customer_phone}\n\n"
+
+            message_model = MessageModel(message=message,
+                                         contacts=contacts,
+                                         greeting_text=GREETING_TEXT)
+
+            await send_vk_message(message_model, vk_id)
     else:
         raise Exception("No json has been found")
 
@@ -107,13 +111,12 @@ async def parse_email(email_text):
         await parse_dict(fetched_dict)
 
 
-async def send_vk_message(message, vk_id=None):
-    if not vk_id:
-        logger.info('Sending message to admin')
-        await api.messages.send(message=message, user_id=RECIPIENTS, random_id=0)
-    else:
+async def send_vk_message(message_model: MessageModel, vk_id=None):
+    if vk_id:
         logger.info(f'Sending message to user {vk_id}')
-        await api.messages.send(message=message, user_id=vk_id, random_id=0)
+        await api.messages.send(message=message_model.client_message, user_id=vk_id, random_id=0)
+    logger.info('Sending message to admin')
+    await api.messages.send(message=message_model.admin_message, user_id=RECIPIENTS, random_id=0)
 
 
 def fetch_emails():
