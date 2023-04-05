@@ -65,3 +65,17 @@ class PaymentInfo(BaseModel):
     payment_status: Optional[str]
     payment_status_description: Optional[str]
     subscription: Optional[SubscriptionInfo]
+
+
+class MessageModel(BaseModel):
+    message: str
+    contacts: str
+    greeting_text: str
+
+    @property
+    def client_message(self):
+        return f"{self.greeting_text}{self.message}"
+
+    @property
+    def admin_message(self):
+        return f"{self.message}\n\n{self.contacts}"
